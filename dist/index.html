@@ -43,6 +43,24 @@
     .toast.show { opacity:1; transform:translate(-50%,0); }
     @media (pointer:coarse), (max-width:700px) { .controls { display:grid; } .hud { top:max(10px, env(safe-area-inset-top)); } .score-card { min-width:82px; padding:7px 10px; } .score-card strong { font-size:1.28rem; } }
     @media (max-height:660px) { .panel { padding:18px 21px 19px; } h1 { font-size:2.2rem; } .instructions { margin:11px 0; } .tip { min-height:0; padding:7px 9px; } }
+    :root { --ink:#233b39; --cream:#fffdf4; --lime:#70bc58; --yellow:#ffdc75; }
+    .vignette { box-shadow:inset 0 0 130px rgba(31,71,49,.12); }
+    .hud { gap:9px; }
+    .score-card { border:1px solid rgba(255,255,255,.85); border-radius:18px; padding:11px 20px; background:rgba(255,253,241,.95); box-shadow:0 5px 18px rgba(27,61,36,.2),inset 0 1px 0 #fff; }
+    .score-card small { font-size:.72rem; letter-spacing:.16em; }
+    .score-card strong { font-size:1.65rem; color:#315c40; }
+    .icon-btn { border:1px solid #fff7ca; background:#fff4ca; box-shadow:0 5px 18px rgba(27,61,36,.2); }
+    .overlay { background:rgba(29,63,45,.18); backdrop-filter:blur(2px); }
+    .panel { transform:none; padding:29px; border:1px solid #ffffff; border-radius:30px; background:linear-gradient(150deg,#fffef7,#fff8e6); box-shadow:0 20px 70px rgba(28,58,37,.32),inset 0 0 0 5px rgba(255,255,255,.65); }
+    .eyebrow { border:0; background:#e0edca; color:#577644; padding:7px 15px; letter-spacing:.16em; }
+    h1 { color:#345b40; font-family:Georgia,serif; text-transform:none; font-size:clamp(2.3rem,8vw,3.4rem); letter-spacing:-.055em; line-height:.97; }
+    .round-line { color:#637261; font-size:1rem; font-weight:650; margin:16px 0 5px; }
+    .tip { border:1px solid #e8e5d5; border-radius:13px; background:rgba(255,255,255,.7); font-weight:550; font-size:.88rem; line-height:1.35; }
+    .tip b { color:#548048; font-size:.74rem; }
+    .play-btn { border:1px solid #498544; background:linear-gradient(#88c868,#5aab50); color:white; box-shadow:0 5px 0 #3c783b,0 7px 18px #56924b40; text-shadow:0 1px 2px #347034; letter-spacing:.08em; font-size:1rem; }
+    .move { border:1px solid rgba(255,255,255,.95); background:rgba(255,252,231,.9); box-shadow:0 4px 13px rgba(38,78,39,.25); color:#427346; }
+    .toast { border:1px solid #f1c76f; }
+    @media (max-height:660px) { .panel { padding:18px 21px; } h1 { font-size:2.2rem; } }
     @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
   </style>
 </head>
@@ -76,6 +94,7 @@
     <button class="move down" data-move="0,-1" aria-label="Hop backward">▼</button>
     <button class="move right" data-move="1,0" aria-label="Hop right">▶</button>
   </div>
+  <script src="art.js?v=3"></script>
   <script>
   (() => {
     'use strict';
@@ -107,7 +126,7 @@
       DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
       canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR);
       canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
-      tileW=Math.max(42,Math.min(64,W/10.8)); tileH=tileW*.54; originX=W*.5; originY=H*.72;
+      tileW=Math.max(39,Math.min(90,W/9.5)); tileH=tileW*.66; originX=W*.5; originY=H*.75;
     }
     addEventListener('resize',resize); resize();
 
@@ -248,7 +267,9 @@
     function drawParticles(){
       for(const p of state.particles){ const s=project(p.x,p.y,p.z);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(s.x-p.size/2,s.y-p.size/2,p.size,p.size); } ctx.globalAlpha=1;
     }
+    const art = createHighwayArt({canvas,ctx,state,laneFor,project,playerPosition,entityX,trainProgress,rand,metrics:()=>({W,H,tileW,tileH})});
     function draw(){
+      art.draw(); return;
       ctx.clearRect(0,0,W,H);
       const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#72e1ff');grad.addColorStop(.62,'#c6f8ff');grad.addColorStop(1,'#e5fff2');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
       ctx.save(); if(state.shake>0)ctx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake);
@@ -260,9 +281,10 @@
       if(state.muted)return; try{ audio ||= new (window.AudioContext||window.webkitAudioContext)(); const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+dur);}catch(e){}
     }
     function startRound(){
+      if(!art.ready())return;
       state.mode='playing';state.score=0;state.coins=0;state.death='';state.time=0;state.cameraY=-2;state.shake=0;state.grace=.5;state.lanes.clear();state.queue.length=0;state.particles.length=0;
       Object.assign(state.player,{x:0,y:0,fromX:0,fromY:0,toX:0,toY:0,hop:1,dir:1});
-      for(let y=-6;y<24;y++)laneFor(y);ui.score.textContent='0';ui.overlay.classList.add('hidden');beep(520,.08,'square',.04);setTimeout(()=>beep(720,.09,'square',.035),80);
+      for(let y=-6;y<24;y++)laneFor(y);ui.score.textContent='0';ui.overlay.classList.add('hidden');ui.overlay.inert=true;ui.overlay.setAttribute('aria-hidden','true');ui.play.blur();beep(520,.08,'square',.04);setTimeout(()=>beep(720,.09,'square',.035),80);
     }
     function showReady(){
       ui.overlay.classList.remove('hidden');ui.label.textContent=`Round ${state.round}`;ui.title.innerHTML='Hopscotch<br>Highway';ui.roundLine.textContent='Cross as many lanes as you can.';ui.result.style.display='none';ui.play.textContent=state.round===1?'Start round':'Play next round';
@@ -270,7 +292,7 @@
     function endRound(reason){
       if(state.mode!=='playing')return;state.mode='dead';state.death=reason;state.shake=11;beep(125,.24,'sawtooth',.06);
       state.best=Math.max(state.best,state.score);localStorage.setItem('hopscotch-best',state.best);ui.best.textContent=state.best;
-      setTimeout(()=>{state.round++;ui.label.textContent=`Round ${state.round}`;ui.title.textContent=reason;ui.roundLine.textContent='Ready for another crossing?';ui.result.innerHTML=`Round score: <strong>${state.score}</strong> · Best: ${state.best}`;ui.result.style.display='block';ui.play.textContent='Play next round';ui.overlay.classList.remove('hidden');},650);
+      setTimeout(()=>{state.round++;ui.label.textContent=`Round ${state.round}`;ui.title.textContent=reason;ui.roundLine.textContent='Ready for another crossing?';ui.result.innerHTML=`Round score: <strong>${state.score}</strong> · Best: ${state.best}`;ui.result.style.display='block';ui.play.textContent='Play next round';ui.overlay.classList.remove('hidden');ui.overlay.inert=false;ui.overlay.removeAttribute('aria-hidden');},650);
     }
     function collectCoin(lane,x){
       if(lane['coin'+x])return;lane['coin'+x]=true;state.score+=3;state.coins++;ui.score.textContent=state.score;ui.toast.classList.add('show');clearTimeout(collectCoin.t);collectCoin.t=setTimeout(()=>ui.toast.classList.remove('show'),650);beep(920,.08,'sine',.05);
