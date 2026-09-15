@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#111a4b" />
+  <meta name="description" content="Hop across roads, rivers, and railways in this bright 2.5D endless arcade game." />
+  <title>Hopscotch Highway</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111a4b'/%3E%3Cpath d='M13 38 32 21l19 17-19 17z' fill='%234bf07b'/%3E%3Crect x='23' y='15' width='18' height='23' rx='6' fill='%23fff7b2'/%3E%3Ccircle cx='28' cy='25' r='2' fill='%23111a4b'/%3E%3Ccircle cx='36' cy='25' r='2' fill='%23111a4b'/%3E%3C/svg%3E" />
+  <style>
+    :root { color-scheme: dark; --ink:#111a4b; --cream:#fff9dc; --lime:#4bf07b; --yellow:#ffd84a; --pink:#ff5b91; --cyan:#36d8ff; }
+    * { box-sizing: border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:var(--ink); font-family:Inter, ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif; }
+    body { touch-action:none; user-select:none; -webkit-user-select:none; }
+    button { font:inherit; }
+    #game { position:fixed; inset:0; width:100%; height:100%; display:block; }
+    .vignette { position:fixed; inset:0; pointer-events:none; box-shadow:inset 0 0 90px rgba(17,26,75,.22); }
+    .hud { position:fixed; top:max(16px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); display:flex; gap:10px; align-items:center; z-index:3; }
+    .score-card { min-width:98px; padding:8px 15px 9px; color:var(--ink); background:rgba(255,249,220,.94); border:3px solid var(--ink); border-radius:16px; box-shadow:0 6px 0 rgba(17,26,75,.28); text-align:center; }
+    .score-card small { display:block; font-size:.72rem; font-weight:900; letter-spacing:.1em; text-transform:uppercase; opacity:.68; }
+    .score-card strong { display:block; font-size:1.5rem; line-height:1; margin-top:3px; font-variant-numeric:tabular-nums; }
+    .icon-btn { width:46px; height:46px; border:3px solid var(--ink); border-radius:14px; background:var(--yellow); color:var(--ink); box-shadow:0 5px 0 rgba(17,26,75,.28); font-size:1.25rem; font-weight:900; cursor:pointer; }
+    .icon-btn:active { transform:translateY(3px); box-shadow:0 2px 0 rgba(17,26,75,.28); }
+    .overlay { position:fixed; inset:0; z-index:5; display:grid; place-items:center; padding:20px; background:rgba(17,26,75,.26); backdrop-filter:blur(5px); transition:opacity .18s ease; }
+    .overlay.hidden { opacity:0; pointer-events:none; }
+    .panel { width:min(92vw, 460px); padding:28px 26px 25px; border:4px solid var(--ink); border-radius:28px; background:var(--cream); color:var(--ink); box-shadow:0 12px 0 rgba(17,26,75,.42); text-align:center; transform:rotate(-.35deg); }
+    .eyebrow { display:inline-block; margin-bottom:9px; padding:5px 11px; border-radius:999px; background:var(--cyan); border:2px solid var(--ink); font-weight:950; font-size:.76rem; letter-spacing:.1em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(2.2rem, 9vw, 4rem); line-height:.88; letter-spacing:-.065em; text-transform:uppercase; text-wrap:balance; }
+    .round-line { margin:12px 0 5px; font-size:1.08rem; font-weight:950; }
+    .instructions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:18px 0; text-align:left; }
+    .tip { min-height:62px; padding:10px 11px; border:2px solid var(--ink); border-radius:13px; background:#fff; font-size:.84rem; font-weight:760; line-height:1.2; }
+    .tip b { display:block; margin-bottom:3px; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:#6a39d5; }
+    .result { display:none; margin:10px 0 2px; font-size:1rem; font-weight:850; }
+    .result strong { font-size:1.5rem; color:#e9306f; }
+    .play-btn { width:100%; min-height:58px; padding:12px 20px; border:3px solid var(--ink); border-radius:17px; background:var(--lime); color:var(--ink); box-shadow:0 6px 0 var(--ink); font-size:1.08rem; font-weight:950; letter-spacing:.03em; text-transform:uppercase; cursor:pointer; }
+    .play-btn:hover { filter:brightness(1.04); }
+    .play-btn:active { transform:translateY(5px); box-shadow:0 1px 0 var(--ink); }
+    .controls { position:fixed; z-index:4; left:50%; bottom:max(18px, env(safe-area-inset-bottom)); transform:translateX(-50%); display:none; grid-template-columns:repeat(3, 58px); grid-template-rows:repeat(2, 54px); gap:7px; }
+    .move { display:grid; place-items:center; border:3px solid var(--ink); border-radius:15px; background:rgba(255,249,220,.92); color:var(--ink); box-shadow:0 5px 0 rgba(17,26,75,.42); font-size:1.45rem; font-weight:950; -webkit-tap-highlight-color:transparent; }
+    .move:active { transform:translateY(3px); box-shadow:0 2px 0 rgba(17,26,75,.42); background:var(--yellow); }
+    .up { grid-column:2; grid-row:1; } .left { grid-column:1; grid-row:2; } .down { grid-column:2; grid-row:2; } .right { grid-column:3; grid-row:2; }
+    .toast { position:fixed; z-index:4; top:94px; left:50%; transform:translate(-50%,-8px); padding:8px 14px; border:2px solid var(--ink); border-radius:999px; background:var(--yellow); color:var(--ink); font-weight:950; opacity:0; transition:.2s; pointer-events:none; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @media (pointer:coarse), (max-width:700px) { .controls { display:grid; } .hud { top:max(10px, env(safe-area-inset-top)); } .score-card { min-width:82px; padding:7px 10px; } .score-card strong { font-size:1.28rem; } }
+    @media (max-height:660px) { .panel { padding:18px 21px 19px; } h1 { font-size:2.2rem; } .instructions { margin:11px 0; } .tip { min-height:0; padding:7px 9px; } }
+    @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Hopscotch Highway game world"></canvas>
+  <div class="vignette"></div>
+  <div class="hud" aria-live="polite">
+    <div class="score-card"><small>Score</small><strong id="score">0</strong></div>
+    <div class="score-card"><small>Best</small><strong id="best">0</strong></div>
+    <button class="icon-btn" id="sound" aria-label="Mute sound" title="Sound">♪</button>
+  </div>
+  <div class="toast" id="toast">+3 coin!</div>
+  <div class="overlay" id="overlay">
+    <section class="panel" role="dialog" aria-modal="true" aria-labelledby="title">
+      <span class="eyebrow" id="statusLabel">Round 1</span>
+      <h1 id="title">Hopscotch<br>Highway</h1>
+      <p class="round-line" id="roundLine">Cross as many lanes as you can.</p>
+      <p class="result" id="result"></p>
+      <div class="instructions">
+        <div class="tip"><b>Move</b>Arrow keys or WASD. Swipe or use the buttons on touch.</div>
+        <div class="tip"><b>Survive</b>Dodge traffic and trains. Ride logs across water.</div>
+        <div class="tip"><b>Score</b>Each new lane is 1 point. Gold coins add 3.</div>
+        <div class="tip"><b>Keep moving</b>Don’t fall behind the bottom of the screen.</div>
+      </div>
+      <button class="play-btn" id="play">Start round</button>
+    </section>
+  </div>
+  <div class="controls" aria-label="Touch movement controls">
+    <button class="move up" data-move="0,1" aria-label="Hop forward">▲</button>
+    <button class="move left" data-move="-1,0" aria-label="Hop left">◀</button>
+    <button class="move down" data-move="0,-1" aria-label="Hop backward">▼</button>
+    <button class="move right" data-move="1,0" aria-label="Hop right">▶</button>
+  </div>
+  <script>
+  (() => {
+    'use strict';
+    const canvas = document.querySelector('#game');
+    const ctx = canvas.getContext('2d');
+    const ui = {
+      overlay: document.querySelector('#overlay'), play: document.querySelector('#play'),
+      title: document.querySelector('#title'), label: document.querySelector('#statusLabel'),
+      roundLine: document.querySelector('#roundLine'), result: document.querySelector('#result'),
+      score: document.querySelector('#score'), best: document.querySelector('#best'),
+      sound: document.querySelector('#sound'), toast: document.querySelector('#toast')
+    };
+    const TAU = Math.PI * 2;
+    const palette = {
+      sky:'#8eeaff', grass:'#50e86f', grass2:'#38c95e', road:'#3d4268', roadSide:'#262a4c',
+      water:'#1ebcf1', water2:'#1595d1', rail:'#b68b63', ink:'#111a4b', cream:'#fff9dc',
+      pink:'#ff5b91', yellow:'#ffd84a', purple:'#8559e8', orange:'#ff8a3c', cyan:'#36d8ff', white:'#ffffff'
+    };
+    const state = {
+      mode:'ready', round:1, score:0, best:Number(localStorage.getItem('hopscotch-best') || 0),
+      coins:0, muted:false, time:0, last:performance.now(), cameraY:-2, shake:0,
+      lanes:new Map(), player:{x:0,y:0,fromX:0,fromY:0,toX:0,toY:0,hop:1,dir:1},
+      queue:[], particles:[], death:'', grace:0
+    };
+    ui.best.textContent = state.best;
+    let W=0,H=0,DPR=1,tileW=56,tileH=30,originX=0,originY=0,audio=null;
+
+    function resize(){
+      DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+      canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR);
+      canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
+      tileW=Math.max(42,Math.min(64,W/10.8)); tileH=tileW*.54; originX=W*.5; originY=H*.72;
+    }
+    addEventListener('resize',resize); resize();
+
+    function rand(row,salt=0){
+      let x=Math.imul(row+37, 1597334677) ^ Math.imul(salt+91, 3812015801);
+      x=(x^(x>>>15))*2246822519; return ((x^(x>>>13))>>>0)/4294967296;
+    }
+    function wrap(v,min,max){ const r=max-min; return ((v-min)%r+r)%r+min; }
+    function shade(hex,amt){
+      const n=parseInt(hex.slice(1),16), r=Math.max(0,Math.min(255,(n>>16)+amt)), g=Math.max(0,Math.min(255,((n>>8)&255)+amt)), b=Math.max(0,Math.min(255,(n&255)+amt));
+      return `rgb(${r},${g},${b})`;
+    }
+    function laneFor(y){
+      if(state.lanes.has(y)) return state.lanes.get(y);
+      let type='grass';
+      if(y>3){
+        const r=rand(y,1), prev=state.lanes.get(y-1)?.type;
+        if(y<8) type=r<.64?'road':'grass';
+        else if(r<.39) type='road'; else if(r<.57 && prev!=='river') type='river'; else if(r<.69 && prev!=='rail') type='rail'; else type='grass';
+      }
+      const dir=rand(y,2)>.5?1:-1;
+      const lane={ y,type,dir,speed:.95+rand(y,3)*1.45,offset:rand(y,4)*20,blockers:[],coins:[] };
+      if(type==='road'){
+        lane.spacing=3.4+rand(y,5)*2.8; lane.size=1.25+rand(y,6)*.8;
+      } else if(type==='river'){
+        lane.spacing=4.3+rand(y,5)*2.2; lane.size=2.1+rand(y,6)*1.5; lane.speed=.65+rand(y,7)*.7;
+      } else if(type==='rail'){
+        lane.period=5.2+rand(y,5)*2.6; lane.phase=rand(y,6)*lane.period; lane.speed=9+rand(y,7)*4;
+      } else if(y>1){
+        const count=Math.floor(rand(y,8)*3);
+        for(let i=0;i<count;i++){
+          const x=Math.floor(rand(y,20+i)*9)-4;
+          if(Math.abs(x)>0 || rand(y,40+i)>.55) lane.blockers.push(x);
+        }
+        if(rand(y,31)>.64){
+          let x=Math.floor(rand(y,32)*9)-4; if(!lane.blockers.includes(x)) lane.coins.push(x);
+        }
+      }
+      state.lanes.set(y,lane); return lane;
+    }
+    function project(x,y,z=0){
+      const ry=y-state.cameraY;
+      return {x:originX+x*tileW+ry*tileW*.28, y:originY-ry*tileH-z*tileH*1.18};
+    }
+    function poly(points,fill,stroke=null,width=1){
+      ctx.beginPath(); ctx.moveTo(points[0].x,points[0].y); for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y); ctx.closePath();
+      ctx.fillStyle=fill; ctx.fill(); if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke();}
+    }
+    function cuboid(x,y,w,d,h,top,left,right,stroke='rgba(17,26,75,.18)'){
+      const a=project(x-w/2,y-d/2,0), b=project(x+w/2,y-d/2,0), c=project(x+w/2,y+d/2,0), d0=project(x-w/2,y+d/2,0);
+      const A=project(x-w/2,y-d/2,h), B=project(x+w/2,y-d/2,h), C=project(x+w/2,y+d/2,h), D=project(x-w/2,y+d/2,h);
+      poly([d0,c,C,D],left,stroke); poly([b,c,C,B],right,stroke); poly([A,B,C,D],top,stroke);
+    }
+    function laneShape(y,color,side){
+      const far=project(-8,y+.5,0), farR=project(8,y+.5,0), nearR=project(8,y-.5,0), near=project(-8,y-.5,0);
+      const lowerR=project(8,y-.5,-.12), lower=project(-8,y-.5,-.12);
+      poly([near,nearR,lowerR,lower],side); poly([far,farR,nearR,near],color,'rgba(17,26,75,.08)');
+    }
+    function line3d(x1,y1,x2,y2,color,width=2,dash=[]){
+      const a=project(x1,y1,.025), b=project(x2,y2,.025); ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);
+    }
+    function drawTree(x,y){
+      cuboid(x,y,.28,.28,.58,'#9b663c','#74472b','#5d3825');
+      cuboid(x,y,.82,.72,.98,rand(y,70+x)>.5?'#27b95a':'#28d86a','#168c45','#13773c');
+      cuboid(x-.12,y-.08,.52,.45,1.38,'#55ef77','#28b957','#209a4b');
+    }
+    function drawCoin(x,y,taken){
+      if(taken) return; const bob=.4+Math.sin(state.time*4+x)*.12; const p=project(x,y,bob);
+      ctx.save();ctx.translate(p.x,p.y);ctx.scale(1,.78);ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.fillStyle=palette.yellow;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#b96b14';ctx.stroke();ctx.fillStyle='#fff3a0';ctx.fillRect(-2,-5,4,10);ctx.restore();
+    }
+    function entityX(lane,index,spacing){ return wrap(lane.offset+index*spacing+state.time*lane.speed*lane.dir,-9,9); }
+    function drawCar(x,y,lane,i){
+      const colors=[palette.pink,palette.yellow,palette.purple,palette.orange,palette.cyan]; const color=colors[Math.abs((lane.y+i)%colors.length)];
+      cuboid(x,y,lane.size,.62,.42,color,shade(color,-35),shade(color,-55));
+      cuboid(x-lane.dir*.06,y,lane.size*.52,.55,.69,'#eafaff','#78b7d1','#4d8baa');
+      for(const dx of [-lane.size*.3,lane.size*.3]){ cuboid(x+dx,y-.34,.2,.12,.18,'#202646','#12162e','#0a0d21'); }
+      const p=project(x+lane.dir*lane.size*.54,y,.28); ctx.fillStyle='#fff5a4';ctx.beginPath();ctx.arc(p.x,p.y,3.2,0,TAU);ctx.fill();
+    }
+    function drawLog(x,y,lane){
+      cuboid(x,y,lane.size,.54,.24,'#c97a3c','#8c4c29','#6f371f');
+      for(let q=-lane.size*.35;q<=lane.size*.35;q+=.7) line3d(x+q,y-.25,x+q,y+.25,'rgba(90,45,25,.42)',1.3);
+      const p=project(x-lane.size/2,y,.12);ctx.fillStyle='#edb06a';ctx.beginPath();ctx.ellipse(p.x,p.y,4,8,-.5,0,TAU);ctx.fill();
+    }
+    function trainProgress(lane){ return (state.time+lane.phase)%lane.period; }
+    function drawTrain(lane){
+      const phase=trainProgress(lane); if(phase>2.1) return;
+      const x=lane.dir*(12-phase*lane.speed);
+      for(let i=0;i<4;i++){
+        const cx=x+i*lane.dir*2.1; cuboid(cx,lane.y,2,.78,.72,i===0?palette.yellow:palette.pink,i===0?'#c88713':'#bd2d64','#762448');
+        cuboid(cx-lane.dir*.15,lane.y,1.18,.72,.98,'#eefcff','#6da8c5','#3d7495');
+      }
+    }
+    function drawLane(lane){
+      if(lane.type==='grass'){
+        laneShape(lane.y,(lane.y%2?palette.grass:shade(palette.grass,7)),palette.grass2);
+        for(const x of lane.blockers) drawTree(x,lane.y);
+        for(const x of lane.coins) drawCoin(x,lane.y,lane['coin'+x]);
+      } else if(lane.type==='road'){
+        laneShape(lane.y,palette.road,palette.roadSide);
+        line3d(-8,lane.y,8,lane.y,'rgba(255,255,255,.46)',2,[tileW*.35,tileW*.28]);
+        const count=Math.ceil(18/lane.spacing)+1; for(let i=0;i<count;i++) drawCar(entityX(lane,i,lane.spacing),lane.y,lane,i);
+      } else if(lane.type==='river'){
+        laneShape(lane.y,palette.water,palette.water2);
+        for(let x=-7;x<8;x+=2.1) line3d(x,lane.y+.15,x+.9,lane.y+.15,'rgba(255,255,255,.32)',2);
+        const count=Math.ceil(18/lane.spacing)+1; for(let i=0;i<count;i++) drawLog(entityX(lane,i,lane.spacing),lane.y,lane);
+      } else {
+        laneShape(lane.y,palette.rail,shade(palette.rail,-35));
+        for(let x=-8;x<8;x+=.62) cuboid(x,lane.y,.42,.72,.08,'#795137','#4d321f','#3b281b');
+        line3d(-8,lane.y-.23,8,lane.y-.23,'#e2edf1',4); line3d(-8,lane.y+.23,8,lane.y+.23,'#b7cbd4',4);
+        const warning=trainProgress(lane)>lane.period-.9;
+        if(warning){ const p=project(0,lane.y,.6);ctx.fillStyle=Math.sin(state.time*18)>0?'#ff315c':'#fff';ctx.beginPath();ctx.arc(p.x,p.y,7,0,TAU);ctx.fill(); }
+        drawTrain(lane);
+      }
+    }
+    function playerPosition(){
+      const p=state.player, e=Math.min(1,p.hop), smooth=e*e*(3-2*e);
+      return {x:p.fromX+(p.toX-p.fromX)*smooth,y:p.fromY+(p.toY-p.fromY)*smooth,z:Math.sin(e*Math.PI)*.6};
+    }
+    function drawPlayer(){
+      if(state.mode==='dead' && Math.sin(state.time*28)<0) return;
+      const p=playerPosition(); const lean=(state.player.toX-state.player.fromX)*.06;
+      cuboid(p.x,p.y,.62,.58,.52+p.z,palette.cream,'#e5d58a','#c6b367');
+      cuboid(p.x+lean,p.y,.68,.6,.94+p.z,'#fffce7','#ece1a8','#cabd7d');
+      cuboid(p.x+lean,p.y-.02,.64,.58,1.28+p.z,palette.cream,'#dfce87','#bdaa67');
+      for(const ex of [-.16,.16]){ const e=project(p.x+ex+lean,p.y-.31,1.13+p.z);ctx.fillStyle=palette.ink;ctx.fillRect(e.x-2.2,e.y-2.2,4.4,5); }
+      const beak=project(p.x+lean,p.y-.39,1.02+p.z);poly([{x:beak.x-5,y:beak.y},{x:beak.x+5,y:beak.y},{x:beak.x,y:beak.y+6}],palette.orange);
+      cuboid(p.x-.22,p.y+.02,.17,.46,.2+p.z,palette.pink,'#cc316a','#a8285b');
+      cuboid(p.x+.22,p.y+.02,.17,.46,.2+p.z,palette.pink,'#cc316a','#a8285b');
+    }
+    function drawParticles(){
+      for(const p of state.particles){ const s=project(p.x,p.y,p.z);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(s.x-p.size/2,s.y-p.size/2,p.size,p.size); } ctx.globalAlpha=1;
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#72e1ff');grad.addColorStop(.62,'#c6f8ff');grad.addColorStop(1,'#e5fff2');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+      ctx.save(); if(state.shake>0)ctx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake);
+      const min=Math.floor(state.cameraY)-5,max=min+Math.ceil(H/tileH)+9;
+      for(let y=max;y>=min;y--) drawLane(laneFor(y));
+      drawPlayer();drawParticles();ctx.restore();
+    }
+    function beep(freq=440,dur=.07,type='square',vol=.035){
+      if(state.muted)return; try{ audio ||= new (window.AudioContext||window.webkitAudioContext)(); const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+dur);}catch(e){}
+    }
+    function startRound(){
+      state.mode='playing';state.score=0;state.coins=0;state.death='';state.time=0;state.cameraY=-2;state.shake=0;state.grace=.5;state.lanes.clear();state.queue.length=0;state.particles.length=0;
+      Object.assign(state.player,{x:0,y:0,fromX:0,fromY:0,toX:0,toY:0,hop:1,dir:1});
+      for(let y=-6;y<24;y++)laneFor(y);ui.score.textContent='0';ui.overlay.classList.add('hidden');beep(520,.08,'square',.04);setTimeout(()=>beep(720,.09,'square',.035),80);
+    }
+    function showReady(){
+      ui.overlay.classList.remove('hidden');ui.label.textContent=`Round ${state.round}`;ui.title.innerHTML='Hopscotch<br>Highway';ui.roundLine.textContent='Cross as many lanes as you can.';ui.result.style.display='none';ui.play.textContent=state.round===1?'Start round':'Play next round';
+    }
+    function endRound(reason){
+      if(state.mode!=='playing')return;state.mode='dead';state.death=reason;state.shake=11;beep(125,.24,'sawtooth',.06);
+      state.best=Math.max(state.best,state.score);localStorage.setItem('hopscotch-best',state.best);ui.best.textContent=state.best;
+      setTimeout(()=>{state.round++;ui.label.textContent=`Round ${state.round}`;ui.title.textContent=reason;ui.roundLine.textContent='Ready for another crossing?';ui.result.innerHTML=`Round score: <strong>${state.score}</strong> · Best: ${state.best}`;ui.result.style.display='block';ui.play.textContent='Play next round';ui.overlay.classList.remove('hidden');},650);
+    }
+    function collectCoin(lane,x){
+      if(lane['coin'+x])return;lane['coin'+x]=true;state.score+=3;state.coins++;ui.score.textContent=state.score;ui.toast.classList.add('show');clearTimeout(collectCoin.t);collectCoin.t=setTimeout(()=>ui.toast.classList.remove('show'),650);beep(920,.08,'sine',.05);
+      for(let i=0;i<12;i++)state.particles.push({x:x+(Math.random()-.5)*.2,y:lane.y,z:.5,vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*.5,vz:1+Math.random(),life:1,color:i%2?palette.yellow:palette.white,size:4+Math.random()*5});
+    }
+    function requestMove(dx,dy){
+      if(state.mode==='ready'&&dy===1){startRound();return;} if(state.mode!=='playing')return;
+      if(state.player.hop<1){ if(state.queue.length<2)state.queue.push([dx,dy]); return; }
+      const tx=Math.round(state.player.x)+dx,ty=state.player.y+dy;if(tx<-5||tx>5)return;
+      const lane=laneFor(ty);if(lane.type==='grass'&&lane.blockers.includes(tx)){beep(170,.05,'square',.03);return;}
+      const p=state.player;p.fromX=p.x;p.fromY=p.y;p.toX=tx;p.toY=ty;p.x=tx;p.y=ty;p.hop=0;if(dx)p.dir=dx;beep(270+Math.max(0,ty)*2,.045,'square',.025);
+    }
+    function checkHazards(dt){
+      const p=state.player;if(p.hop<.72||state.grace>0)return;const lane=laneFor(p.y);
+      if(lane.type==='road'){
+        const count=Math.ceil(18/lane.spacing)+1;for(let i=0;i<count;i++){const x=entityX(lane,i,lane.spacing);if(Math.abs(x-p.x)<lane.size*.5+.3){endRound('Traffic jam!');return;}}
+      } else if(lane.type==='river'){
+        let support=false;const count=Math.ceil(18/lane.spacing)+1;for(let i=0;i<count;i++){const x=entityX(lane,i,lane.spacing);if(Math.abs(x-p.x)<lane.size*.5-.12){support=true;break;}}
+        if(!support){endRound('Splash!');return;}p.x+=lane.dir*lane.speed*dt;p.fromX+=lane.dir*lane.speed*dt;p.toX=p.x;if(Math.abs(p.x)>5.75){endRound('Swept away!');return;}
+      } else if(lane.type==='rail'){
+        const phase=trainProgress(lane);if(phase<2.1){const x=lane.dir*(12-phase*lane.speed);if(Math.abs(x-p.x)<4.6){endRound('Express delivery!');return;}}
+      }
+      if(p.y<state.cameraY-5.3)endRound('Too slow!');
+    }
+    function update(dt){
+      state.time+=dt;state.shake=Math.max(0,state.shake-dt*22);state.grace=Math.max(0,state.grace-dt);
+      if(state.mode==='playing'){
+        const p=state.player;if(p.hop<1){p.hop=Math.min(1,p.hop+dt/0.14);if(p.hop===1){p.x=p.toX;p.y=p.toY;const gained=Math.max(0,p.y-state.score+state.coins*3);const lane=laneFor(p.y);if(p.y>state.score-state.coins*3){state.score=p.y+state.coins*3;ui.score.textContent=state.score;}
+          if(lane.type==='grass')for(const x of lane.coins)if(Math.abs(x-p.x)<.35)collectCoin(lane,x);if(state.queue.length){const m=state.queue.shift();requestMove(m[0],m[1]);}
+        }}
+        const target=Math.max(-2,p.y-3);state.cameraY+=(target-state.cameraY)*Math.min(1,dt*3.1);checkHazards(dt);
+      } else state.cameraY+=(-2-state.cameraY)*Math.min(1,dt*2);
+      for(const p of state.particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.vz-=3.6*dt;p.life-=dt*1.35;}state.particles=state.particles.filter(p=>p.life>0);
+    }
+    function loop(now){const dt=Math.min(.033,(now-state.last)/1000||0);state.last=now;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+    const keys={ArrowUp:[0,1],w:[0,1],W:[0,1],ArrowDown:[0,-1],s:[0,-1],S:[0,-1],ArrowLeft:[-1,0],a:[-1,0],A:[-1,0],ArrowRight:[1,0],d:[1,0],D:[1,0]};
+    addEventListener('keydown',e=>{if(keys[e.key]){e.preventDefault();requestMove(...keys[e.key]);}else if((e.key===' '||e.key==='Enter')&&!ui.overlay.classList.contains('hidden')){e.preventDefault();startRound();}});
+    document.querySelectorAll('[data-move]').forEach(btn=>btn.addEventListener('pointerdown',e=>{e.preventDefault();requestMove(...btn.dataset.move.split(',').map(Number));}));
+    let touch=null;canvas.addEventListener('pointerdown',e=>{touch={x:e.clientX,y:e.clientY};});canvas.addEventListener('pointerup',e=>{if(!touch)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y;if(Math.hypot(dx,dy)>24){if(Math.abs(dx)>Math.abs(dy))requestMove(Math.sign(dx),0);else requestMove(0,-Math.sign(dy));}else requestMove(0,1);touch=null;});
+    ui.play.addEventListener('click',startRound);ui.sound.addEventListener('click',()=>{state.muted=!state.muted;ui.sound.textContent=state.muted?'×':'♪';ui.sound.setAttribute('aria-label',state.muted?'Turn sound on':'Mute sound');if(!state.muted)beep(620);});
+    showReady();
+  })();
+  </script>
+</body>
+</html>
