@@ -198,7 +198,12 @@
       if(taken) return; const bob=.4+Math.sin(state.time*4+x)*.12; const p=project(x,y,bob);
       ctx.save();ctx.translate(p.x,p.y);ctx.scale(1,.78);ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.fillStyle=palette.yellow;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#b96b14';ctx.stroke();ctx.fillStyle='#fff3a0';ctx.fillRect(-2,-5,4,10);ctx.restore();
     }
-    function entityX(lane,index,spacing){ return wrap(lane.offset+index*spacing+state.time*lane.speed*lane.dir,-9,9); }
+    function entityX(lane,index,spacing){
+      // Fit the complete convoy into its loop, preserving the final-to-first gap.
+      const count=Math.ceil(18/spacing)+1;
+      const length=count*spacing;
+      return wrap(lane.offset+index*spacing+state.time*lane.speed*lane.dir,-length/2,length/2);
+    }
     function drawCar(x,y,lane,i){
       const colors=[palette.pink,palette.yellow,palette.purple,palette.orange,palette.cyan]; const color=colors[Math.abs((lane.y+i)%colors.length)];
       const frontX=x+lane.dir*lane.size*.5;
