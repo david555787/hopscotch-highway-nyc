@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#111a4b" />
-  <meta name="description" content="Hop across roads, rivers, and railways in this bright 2.5D endless arcade game." />
-  <title>Hopscotch Highway</title>
+  <meta name="theme-color" content="#10172e" />
+  <meta name="description" content="Hop through New York after hours: yellow taxis, glowing storefronts, and subway trains in a vivid 2.5D arcade game." />
+  <title>Hopscotch Highway · NYC After Hours</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111a4b'/%3E%3Cpath d='M13 38 32 21l19 17-19 17z' fill='%234bf07b'/%3E%3Crect x='23' y='15' width='18' height='23' rx='6' fill='%23fff7b2'/%3E%3Ccircle cx='28' cy='25' r='2' fill='%23111a4b'/%3E%3Ccircle cx='36' cy='25' r='2' fill='%23111a4b'/%3E%3C/svg%3E" />
   <style>
     :root { color-scheme: dark; --ink:#111a4b; --cream:#fff9dc; --lime:#4bf07b; --yellow:#ffd84a; --pink:#ff5b91; --cyan:#36d8ff; }
@@ -61,12 +61,31 @@
     .move { border:1px solid rgba(255,255,255,.95); background:rgba(255,252,231,.9); box-shadow:0 4px 13px rgba(38,78,39,.25); color:#427346; }
     .toast { border:1px solid #f1c76f; }
     @media (max-height:660px) { .panel { padding:18px 21px; } h1 { font-size:2.2rem; } }
+    :root { --ink:#e9f4ff; --cream:#15213d; --lime:#56ddce; --yellow:#ffc66e; }
+    html,body { background:#10172e; }
+    .vignette { box-shadow:inset 0 0 100px rgba(5,10,32,.3); }
+    .score-card { color:#d5e9ff; background:rgba(14,25,49,.94); border:1px solid #60799866; box-shadow:0 6px 25px #050c2850; }
+    .score-card strong { color:#ffcf74; }
+    .icon-btn { color:#7cf4e6; background:#1b2d4b; border:1px solid #62d7d26b; }
+    .overlay { background:#080e2455; backdrop-filter:blur(3px); }
+    .panel { color:#e3eefb; background:linear-gradient(150deg,#1c2e4d,#101a33); border:1px solid #62ccda70; box-shadow:0 22px 90px #02061db3,inset 0 1px 0 #8ac4e52e; }
+    .eyebrow { color:#77e9e0; background:#26434d; }
+    h1 { color:#f7f3e8; font-family:system-ui,sans-serif; font-weight:900; letter-spacing:-.065em; }
+    .round-line { color:#aabdd5; }
+    .tip { color:#c9d9e9; background:#1e304b; border:1px solid #465c7955; }
+    .tip b { color:#ffce81; }
+    .play-btn { color:#112b38; background:linear-gradient(#80f1da,#41cabc); border:1px solid #a4ffed; box-shadow:0 5px 0 #22796e,0 4px 25px #3de1ce40; text-shadow:none; }
+    .move { color:#85f4e5; background:#142743e8; border:1px solid #72c6d569; box-shadow:0 5px 20px #050b2255; }
+    .toast { color:#251d37; }
+    .city-label { position:fixed; left:20px; bottom:21px; z-index:3; pointer-events:none; color:#c6d8ec; font-size:.7rem; letter-spacing:.2em; font-weight:800; text-transform:uppercase; text-shadow:0 2px 8px #000; }
+    @media(max-width:700px){.city-label{left:12px;bottom:12px;font-size:.65rem;}}
     @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
   </style>
 </head>
 <body>
   <canvas id="game" aria-label="Hopscotch Highway game world"></canvas>
   <div class="vignette"></div>
+  <div class="city-label">New York · After hours</div>
   <div class="hud" aria-live="polite">
     <div class="score-card"><small>Score</small><strong id="score">0</strong></div>
     <div class="score-card"><small>Best</small><strong id="best">0</strong></div>
@@ -77,7 +96,7 @@
     <section class="panel" role="dialog" aria-modal="true" aria-labelledby="title">
       <span class="eyebrow" id="statusLabel">Round 1</span>
       <h1 id="title">Hopscotch<br>Highway</h1>
-      <p class="round-line" id="roundLine">Cross as many lanes as you can.</p>
+      <p class="round-line" id="roundLine">A little chicken. A city that never sleeps.</p>
       <p class="result" id="result"></p>
       <div class="instructions">
         <div class="tip"><b>Move</b>Arrow keys or WASD. Swipe or use the buttons on touch.</div>
@@ -94,7 +113,7 @@
     <button class="move down" data-move="0,-1" aria-label="Hop backward">▼</button>
     <button class="move right" data-move="1,0" aria-label="Hop right">▶</button>
   </div>
-  <script src="art.js?v=3"></script>
+  <script src="art.js?v=nyc2"></script>
   <script>
   (() => {
     'use strict';
@@ -126,7 +145,7 @@
       DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
       canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR);
       canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
-      tileW=Math.max(39,Math.min(90,W/9.5)); tileH=tileW*.66; originX=W*.5; originY=H*.75;
+      tileW=Math.max(27,Math.min(85,W/13)); tileH=tileW*.66; originX=W*.43; originY=H*.75;
     }
     addEventListener('resize',resize); resize();
 
@@ -169,7 +188,7 @@
     }
     function project(x,y,z=0){
       const ry=y-state.cameraY;
-      return {x:originX+x*tileW+ry*tileW*.28, y:originY-ry*tileH-z*tileH*1.18};
+      return {x:originX+x*tileW+ry*tileW*.28, y:originY+x*tileW*.25-ry*tileH-z*tileH*1.18};
     }
     function poly(points,fill,stroke=null,width=1){
       ctx.beginPath(); ctx.moveTo(points[0].x,points[0].y); for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y); ctx.closePath();
@@ -292,7 +311,7 @@
       for(let y=-6;y<24;y++)laneFor(y);ui.score.textContent='0';ui.overlay.classList.add('hidden');ui.overlay.inert=true;ui.overlay.setAttribute('aria-hidden','true');ui.play.blur();beep(520,.08,'square',.04);setTimeout(()=>beep(720,.09,'square',.035),80);
     }
     function showReady(){
-      ui.overlay.classList.remove('hidden');ui.label.textContent=`Round ${state.round}`;ui.title.innerHTML='Hopscotch<br>Highway';ui.roundLine.textContent='Cross as many lanes as you can.';ui.result.style.display='none';ui.play.textContent=state.round===1?'Start round':'Play next round';
+      ui.overlay.classList.remove('hidden');ui.label.textContent=`NYC After Hours · Round ${state.round}`;ui.title.innerHTML='Hopscotch<br>Highway';ui.roundLine.textContent='A little chicken. A city that never sleeps.';ui.result.style.display='none';ui.play.textContent=state.round===1?'Start round':'Play next round';
     }
     function endRound(reason){
       if(state.mode!=='playing')return;state.mode='dead';state.death=reason;state.shake=11;beep(125,.24,'sawtooth',.06);
