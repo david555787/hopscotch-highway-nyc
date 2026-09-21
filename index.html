@@ -241,12 +241,17 @@
       for(let q=-lane.size*.35;q<=lane.size*.35;q+=.7) line3d(x+q,y-.25,x+q,y+.25,'rgba(90,45,25,.42)',1.3);
       const p=project(x-lane.size/2,y,.12);ctx.fillStyle='#edb06a';ctx.beginPath();ctx.ellipse(p.x,p.y,4,8,-.5,0,TAU);ctx.fill();
     }
+    const TRAIN_CAR_COUNT=4, TRAIN_CAR_LENGTH=2.1, TRAIN_CAR_SPACING=2.5;
     function trainProgress(lane){ return (state.time+lane.phase)%lane.period; }
+    function trainCarPositions(lane){
+      const phase=trainProgress(lane);if(phase>2.1)return [];
+      const headX=lane.dir*(12-phase*lane.speed);
+      return Array.from({length:TRAIN_CAR_COUNT},(_,i)=>headX+i*lane.dir*TRAIN_CAR_SPACING);
+    }
     function drawTrain(lane){
-      const phase=trainProgress(lane); if(phase>2.1) return;
-      const x=lane.dir*(12-phase*lane.speed);
-      for(let i=0;i<4;i++){
-        const cx=x+i*lane.dir*2.1; cuboid(cx,lane.y,2,.78,.72,i===0?palette.yellow:palette.pink,i===0?'#c88713':'#bd2d64','#762448');
+      const cars=trainCarPositions(lane);
+      for(let i=0;i<cars.length;i++){
+        const cx=cars[i]; cuboid(cx,lane.y,2,.78,.72,i===0?palette.yellow:palette.pink,i===0?'#c88713':'#bd2d64','#762448');
         cuboid(cx-lane.dir*.15,lane.y,1.18,.72,.98,'#eefcff','#6da8c5','#3d7495');
       }
     }
@@ -291,7 +296,7 @@
     function drawParticles(){
       for(const p of state.particles){ const s=project(p.x,p.y,p.z);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(s.x-p.size/2,s.y-p.size/2,p.size,p.size); } ctx.globalAlpha=1;
     }
-    const art = createHighwayArt({canvas,ctx,state,laneFor,project,playerPosition,entityX,trainProgress,rand,metrics:()=>({W,H,tileW,tileH})});
+    const art = createHighwayArt({canvas,ctx,state,laneFor,project,playerPosition,entityX,trainProgress,trainCarPositions,rand,metrics:()=>({W,H,tileW,tileH})});
     function draw(){
       art.draw(); return;
       ctx.clearRect(0,0,W,H);
@@ -337,7 +342,7 @@
         let support=false;const count=Math.ceil(18/lane.spacing)+1;for(let i=0;i<count;i++){const x=entityX(lane,i,lane.spacing);if(Math.abs(x-p.x)<lane.size*.5-.12){support=true;break;}}
         if(!support){endRound('Splash!');return;}p.x+=lane.dir*lane.speed*dt;p.fromX+=lane.dir*lane.speed*dt;p.toX=p.x;if(Math.abs(p.x)>5.75){endRound('Swept away!');return;}
       } else if(lane.type==='rail'){
-        const phase=trainProgress(lane);if(phase<2.1){const x=lane.dir*(12-phase*lane.speed);if(Math.abs(x-p.x)<4.6){endRound('Express delivery!');return;}}
+        for(const x of trainCarPositions(lane)){if(Math.abs(x-p.x)<TRAIN_CAR_LENGTH*.5+.3){endRound('Express delivery!');return;}}
       }
       if(p.y<state.cameraY-5.3)endRound('Too slow!');
     }
