@@ -5,7 +5,7 @@ window.createHighwayArt = function(g) {
     world:[[144,65,234,390],[536,152,457,291],[1046,152,457,290],[37,532,441,442],[530,701,471,201],[1033,655,489,241]],
     nyc:[[45,97,472,267],[570,120,466,245],[1146,39,292,396],[65,397,422,591],[615,397,307,586],[1010,593,490,347]]
   };
-  const trackAngle=Math.atan(.25);
+  const trackAngle=Math.atan(.25),trainTrackZ=-.2;
   let sprites=[],loaded=0;
   const start=document.querySelector('#play');start.disabled=true;start.textContent='Loading artwork…';
   function loadAtlas(url,offset){const atlas=new Image();
@@ -59,7 +59,7 @@ window.createHighwayArt = function(g) {
         for(const x of lane.coins)if(!lane['coin'+x])objects.push({x,y,draw:()=>coin(x,y)});
       } else if(lane.type==='road'||lane.type==='river'){
         const count=Math.ceil(18/lane.spacing)+1;for(let i=0;i<count;i++){const x=entityX(lane,i,lane.spacing);if(Math.abs(x)>7.5)continue;objects.push({x,y,draw:()=>{const w=tileW*lane.size;if(lane.type==='river'){shadow(x,y,w*.55,tileH*.23,.2);sprite(4,x,y,w, -.12,false,.245);}else{shadow(x,y,w*.53,tileH*.3,.4);glow(x+lane.dir*lane.size*.6,y,'#ffe6a73d',.6);sprite((i+y)%3?6:7,x,y,w,0,lane.dir<0,lane.dir<0?.49:0);}}});}
-      } else {const phase=trainProgress(lane),cars=trainCarPositions(lane),movingLeft=lane.dir>0;for(let i=0;i<cars.length;i++){const cx=cars[i];if(Math.abs(cx)>8)continue;objects.push({x:cx,y,draw:()=>{shadow(cx,y,tileW*1.1,tileH*.4,.4);sprite(11,cx,y,tileW*2.1,0,movingLeft,movingLeft?trackAngle*2:0);}});}
+      } else {const phase=trainProgress(lane),cars=trainCarPositions(lane),movingLeft=lane.dir>0;for(let i=0;i<cars.length;i++){const cx=cars[i];if(Math.abs(cx)>8)continue;objects.push({x:cx,y,draw:()=>{shadow(cx,y,tileW*1.1,tileH*.32,.4);sprite(11,cx,y,tileW*2.1,trainTrackZ,movingLeft,movingLeft?trackAngle*2:0);}});}
         if(phase>lane.period-.9){const p=project(-5.5,y);ctx.fillStyle=Math.sin(state.time*18)>0?'#ff4242':'#ffddd0';ctx.shadowBlur=14;ctx.shadowColor='#ff3838';ctx.beginPath();ctx.arc(p.x,p.y-12,6,0,7);ctx.fill();ctx.shadowBlur=0;}
       }
       if(y%3===0)for(const x of [-6.65,6.85])objects.push({x,y,draw:()=>{glow(x,y,x<0?'#ff65be55':'#53cfe94d',1.7);sprite((y%6===0)?10:9,x,y,tileW*(y%6===0?2.1:2.35));}});
