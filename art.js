@@ -61,7 +61,7 @@ window.createHighwayArt = function(g) {
         for(const x of lane.coins)if(!lane['coin'+x])objects.push({x,y,draw:()=>coin(x,y)});
       } else if(lane.type==='road'||lane.type==='river'){
         const count=Math.ceil(18/lane.spacing)+1;for(let i=0;i<count;i++){const x=entityX(lane,i,lane.spacing);if(Math.abs(x)>7.5)continue;objects.push({x,y,draw:()=>{const w=tileW*lane.size;if(lane.type==='river'){shadow(x,y,w*.55,tileH*.23,.2);sprite(4,x,y,w, -.12,false,.245);}else{shadow(x,y,w*.53,tileH*.3,.4);glow(x+lane.dir*lane.size*.6,y,'#ffe6a73d',.6);sprite((i+y)%3?6:7,x,y,w,0,lane.dir<0,lane.dir<0?.49:0);}}});}
-      } else {const phase=trainProgress(lane),cars=trainCarPositions(lane),movingLeft=lane.dir>0;for(let i=0;i<cars.length;i++){const cx=cars[i];if(Math.abs(cx)>8)continue;objects.push({x:cx,y,draw:()=>{shadow(cx,y,tileW*1.05,tileH*.28,.36);sprite(12,cx,y,tileW*2.1,0,movingLeft,movingLeft?trackAngle*2:0,trainWheelAnchor);}});}
+      } else {const phase=trainProgress(lane),trains=trainCarPositions(lane),movingLeft=lane.dir>0;for(let i=0;i<trains.length;i++){const cx=trains[i];if(Math.abs(cx)>9.5)continue;objects.push({x:cx,y,draw:()=>{shadow(cx,y,tileW*2.3,tileH*.42,.36);sprite(12,cx,y,tileW*4.6,0,movingLeft,movingLeft?trackAngle*2:0,trainWheelAnchor);}});}
         if(phase>lane.period-.9){const p=project(-5.5,y);ctx.fillStyle=Math.sin(state.time*18)>0?'#ff4242':'#ffddd0';ctx.shadowBlur=14;ctx.shadowColor='#ff3838';ctx.beginPath();ctx.arc(p.x,p.y-12,6,0,7);ctx.fill();ctx.shadowBlur=0;}
       }
       if(y%3===0)for(const x of [-6.65,6.85])objects.push({x,y,draw:()=>{glow(x,y,x<0?'#ff65be55':'#53cfe94d',1.7);sprite((y%6===0)?10:9,x,y,tileW*(y%6===0?2.1:2.35));}});

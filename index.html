@@ -113,7 +113,7 @@
     <button class="move down" data-move="0,-1" aria-label="Hop backward">▼</button>
     <button class="move right" data-move="1,0" aria-label="Hop right">▶</button>
   </div>
-  <script src="art.js?v=nyc8"></script>
+  <script src="art.js?v=nyc9"></script>
   <script>
   (() => {
     'use strict';
@@ -243,12 +243,12 @@
       for(let q=-lane.size*.35;q<=lane.size*.35;q+=.7) line3d(x+q,y-.25,x+q,y+.25,'rgba(90,45,25,.42)',1.3);
       const p=project(x-lane.size/2,y,.12);ctx.fillStyle='#edb06a';ctx.beginPath();ctx.ellipse(p.x,p.y,4,8,-.5,0,TAU);ctx.fill();
     }
-    const TRAIN_CAR_COUNT=4, TRAIN_CAR_LENGTH=2.1, TRAIN_CAR_SPACING=2.5;
+    const TRAIN_LENGTH=4.6;
     function trainProgress(lane){ return (state.time+lane.phase)%lane.period; }
     function trainCarPositions(lane){
       const phase=trainProgress(lane);if(phase>2.1)return [];
       const headX=lane.dir*(12-phase*lane.speed);
-      return Array.from({length:TRAIN_CAR_COUNT},(_,i)=>headX+i*lane.dir*TRAIN_CAR_SPACING);
+      return [headX];
     }
     function drawTrain(lane){
       const cars=trainCarPositions(lane);
@@ -344,7 +344,7 @@
         let support=false;const count=Math.ceil(18/lane.spacing)+1;for(let i=0;i<count;i++){const x=entityX(lane,i,lane.spacing);if(Math.abs(x-p.x)<lane.size*.5-.12){support=true;break;}}
         if(!support){endRound('Splash!');return;}p.x+=lane.dir*lane.speed*dt;p.fromX+=lane.dir*lane.speed*dt;p.toX=p.x;if(Math.abs(p.x)>5.75){endRound('Swept away!');return;}
       } else if(lane.type==='rail'){
-        for(const x of trainCarPositions(lane)){if(Math.abs(x-p.x)<TRAIN_CAR_LENGTH*.5+.3){endRound('Express delivery!');return;}}
+        for(const x of trainCarPositions(lane)){if(Math.abs(x-p.x)<TRAIN_LENGTH*.5+.3){endRound('Express delivery!');return;}}
       }
       if(p.y<state.cameraY-5.3)endRound('Too slow!');
     }
