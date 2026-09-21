@@ -113,7 +113,7 @@
     <button class="move down" data-move="0,-1" aria-label="Hop backward">▼</button>
     <button class="move right" data-move="1,0" aria-label="Hop right">▶</button>
   </div>
-  <script src="art.js?v=nyc2"></script>
+  <script src="art.js?v=nyc3"></script>
   <script>
   (() => {
     'use strict';
@@ -132,8 +132,10 @@
       water:'#1ebcf1', water2:'#1595d1', rail:'#b68b63', ink:'#111a4b', cream:'#fff9dc',
       pink:'#ff5b91', yellow:'#ffd84a', purple:'#8559e8', orange:'#ff8a3c', cyan:'#36d8ff', white:'#ffffff'
     };
+    function loadBest(){try{return Number(localStorage.getItem('hopscotch-best')||0);}catch{return 0;}}
+    function saveBest(value){try{localStorage.setItem('hopscotch-best',value);}catch{}}
     const state = {
-      mode:'ready', round:1, score:0, best:Number(localStorage.getItem('hopscotch-best') || 0),
+      mode:'ready', round:1, score:0, best:loadBest(),
       coins:0, muted:false, time:0, last:performance.now(), cameraY:-2, shake:0,
       lanes:new Map(), player:{x:0,y:0,fromX:0,fromY:0,toX:0,toY:0,hop:1,dir:1},
       queue:[], particles:[], death:'', grace:0
@@ -320,7 +322,7 @@
     }
     function endRound(reason){
       if(state.mode!=='playing')return;state.mode='dead';state.death=reason;state.shake=11;beep(125,.24,'sawtooth',.06);
-      state.best=Math.max(state.best,state.score);localStorage.setItem('hopscotch-best',state.best);ui.best.textContent=state.best;
+      state.best=Math.max(state.best,state.score);saveBest(state.best);ui.best.textContent=state.best;
       setTimeout(()=>{state.round++;ui.label.textContent=`Round ${state.round}`;ui.title.textContent=reason;ui.roundLine.textContent='Ready for another crossing?';ui.result.innerHTML=`Round score: <strong>${state.score}</strong> · Best: ${state.best}`;ui.result.style.display='block';ui.play.textContent='Play next round';ui.overlay.classList.remove('hidden');ui.overlay.inert=false;ui.overlay.removeAttribute('aria-hidden');},650);
     }
     function collectCoin(lane,x){

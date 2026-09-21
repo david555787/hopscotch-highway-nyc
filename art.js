@@ -1,21 +1,18 @@
 /* Illustrated sprite renderer. World positions and collision rules stay in the game. */
 window.createHighwayArt = function(g) {
   const {ctx,state,project,laneFor,playerPosition,entityX,trainProgress,trainCarPositions,rand}=g;
+  const atlasBounds={
+    world:[[144,65,234,390],[536,152,457,291],[1046,152,457,290],[37,532,441,442],[530,701,471,201],[1033,655,489,241]],
+    nyc:[[45,97,472,267],[570,120,466,245],[1146,39,292,396],[65,397,422,591],[615,397,307,586],[1010,593,490,347]]
+  };
   let sprites=[],loaded=0;
   const start=document.querySelector('#play');start.disabled=true;start.textContent='Loading artwork…';
   function loadAtlas(url,offset){const atlas=new Image();
   atlas.onerror=()=>{start.textContent='Artwork could not load — refresh';};
   atlas.onload=()=>{
-    // Trim each transparent atlas cell once, retaining the original generated art.
-    const scratch=document.createElement('canvas');scratch.width=atlas.width;scratch.height=atlas.height;
-    const s=scratch.getContext('2d');s.drawImage(atlas,0,0);const pixels=s.getImageData(0,0,atlas.width,atlas.height).data;
-    const cells=Array.from({length:6},(_,i)=>{
-      const region=offset===6?[[0,0,535,390],[535,0,510,390],[1045,0,491,490],[0,390,525,634],[545,390,420,634],[990,500,546,524]][i]:[i%3*512,Math.floor(i/3)*512,512,512];
-      const scale=atlas.width/1536;
-      const [ox,oy,cw,ch]=region.map(v=>Math.round(v*scale));let l=cw,t=ch,r=0,b=0;
-      for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){if(pixels[((oy+y)*atlas.width+ox+x)*4+3]>30){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}}
-      return {image:atlas,x:ox+l,y:oy+t,w:r-l+1,h:b-t+1};
-    });
+    // Precomputed transparent bounds avoid canvas pixel reads, which Chrome blocks on file:// pages.
+    const scale=atlas.width/1536,bounds=offset===6?atlasBounds.nyc:atlasBounds.world;
+    const cells=bounds.map(([x,y,w,h])=>({image:atlas,x:x*scale,y:y*scale,w:w*scale,h:h*scale}));
     cells.forEach((cell,i)=>sprites[offset+i]=cell);loaded++;
     if(loaded===2){start.disabled=false;start.textContent=state.round===1?'Start round':'Play next round';}
   };
