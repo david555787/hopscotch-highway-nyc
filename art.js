@@ -5,7 +5,8 @@ window.createHighwayArt = function(g) {
     world:[[144,65,234,390],[536,152,457,291],[1046,152,457,290],[37,532,441,442],[530,701,471,201],[1033,655,489,241]],
     nyc:[[45,97,472,267],[570,120,466,245],[1146,39,292,396],[65,397,422,591],[615,397,307,586],[1010,593,490,347]]
   };
-  const trackAngle=Math.atan(.25),trainTrackZ=-.2;
+  // The atlas crop extends below the wheels, so seat the wheel line—not the crop edge—on the rails.
+  const trackAngle=Math.atan(.25),trainTrackZ=-.38;
   let sprites=[],loaded=0;
   const start=document.querySelector('#play');start.disabled=true;start.textContent='Loading artwork…';
   function loadAtlas(url,offset){const atlas=new Image();
