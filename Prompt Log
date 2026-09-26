@@ -1,0 +1,201 @@
+# Prompt Log — Integrating Crossy Road into Personal Website
+
+## 1. Task Overview
+
+**Task:** Integrate a browser-based Crossy Road game into an existing personal portfolio website.
+
+**Website:**  
+https://david555787.github.io/jessielu.github.io/
+
+**Goal:**  
+Add the Crossy Road game as a project within the personal website so that users can click the “Crossy Road” project and be redirected to a playable version of the game.
+
+---
+
+## 2. User Request
+
+The user wanted to add a newly created web game to their personal website. The game consisted of three files:
+
+- `index.html`
+- `style.css`
+- `script.js`
+
+The user specifically requested that the existing **Crossy Road** project on the portfolio become clickable and redirect visitors to the playable game.
+
+---
+
+## 3. Files Provided
+
+The following files were provided for the game:
+
+### `index.html`
+Contains the structure of the Crossy Road game, including:
+
+- Game canvas
+- Score display
+- Best score display
+- Start screen
+- Game-over screen
+- Control instructions
+- Start and restart buttons
+
+The HTML file links to:
+
+```html
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+```
+
+### `style.css`
+Controls the appearance of the game, including:
+
+- Game layout
+- Canvas styling
+- HUD
+- Start and game-over overlays
+- Buttons
+- Typography
+- Colors and visual effects
+
+### `script.js`
+Contains the main game logic, including:
+
+- Player movement
+- Keyboard controls
+- Touch/swipe controls
+- Vehicles
+- Logs
+- Trains
+- Collision detection
+- Score tracking
+- Procedurally generated lanes
+- Game rendering using HTML Canvas
+
+---
+
+## 4. Prompt Sent to AI
+
+> Open and inspect the user's GitHub Pages project:
+>
+> https://david555787.github.io/jessielu.github.io/
+>
+> Locate the “Crossy Road” card or link inside the Projects section.
+>
+> Add the three uploaded game files:
+>
+> - `index.html`
+> - `style.css`
+> - `script.js`
+>
+> as a separate game subfolder, such as:
+>
+> `crossy-road/`
+>
+> Modify the main personal website so that clicking the Crossy Road project card or button redirects the user to:
+>
+> `crossy-road/index.html`
+>
+> Preserve the existing design and style of the personal website.
+>
+> Do not modify the relative paths between the game files unless necessary.
+>
+> After completing the integration, explain which files were modified and how the changes should be committed and pushed to GitHub Pages.
+
+---
+
+## 5. Expected Project Structure
+
+The intended repository structure is:
+
+```text
+jessielu.github.io/
+├── index.html
+├── style.css
+├── script.js
+├── other website files...
+│
+└── crossy-road/
+    ├── index.html
+    ├── style.css
+    └── script.js
+```
+
+Keeping the game inside its own folder prevents its CSS and JavaScript files from conflicting with the main website files.
+
+---
+
+## 6. Expected Website Behavior
+
+The main portfolio remains accessible at:
+
+```text
+https://david555787.github.io/jessielu.github.io/
+```
+
+The Crossy Road game becomes accessible at:
+
+```text
+https://david555787.github.io/jessielu.github.io/crossy-road/
+```
+
+The Crossy Road project on the main website should link to:
+
+```html
+<a href="crossy-road/index.html">
+    Crossy Road
+</a>
+```
+
+Alternatively, the entire project card can be made clickable.
+
+---
+
+## 7. Implementation Requirements
+
+The AI was asked to:
+
+1. Preserve the existing portfolio design.
+2. Keep the game in a separate directory.
+3. Keep the three game files together.
+4. Maintain the existing relative references between the game files.
+5. Make the Crossy Road project clickable.
+6. Redirect the user to the playable game page.
+7. Ensure compatibility with GitHub Pages.
+
+---
+
+## 8. Verification Criteria
+
+The integration should be considered successful if:
+
+- The personal website still loads normally.
+- The Projects section still displays correctly.
+- The Crossy Road project is clickable.
+- Clicking Crossy Road opens the game.
+- The game CSS loads correctly.
+- The game JavaScript runs correctly.
+- Keyboard controls work.
+- The game canvas displays normally.
+- The game is accessible through the GitHub Pages URL.
+
+---
+
+## 9. Expected Git Workflow
+
+After making the changes, the updated files should be committed and pushed to GitHub.
+
+Example commands:
+
+```bash
+git add .
+git commit -m "Add Crossy Road game to portfolio"
+git push
+```
+
+After the GitHub Pages deployment updates, the game should become publicly accessible from the portfolio website.
+
+---
+
+## 10. Final Intended Result
+
+The final result is a personal portfolio website where visitors can browse the Projects section, click **Crossy Road**, and immediately open and play the browser-based game on a separate page within the same GitHub Pages website.
